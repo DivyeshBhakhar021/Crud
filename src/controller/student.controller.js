@@ -5,6 +5,9 @@ const bcrypt = require("bcrypt");
 const { log } = require("console");
 
 
+// const register =
+
+
 const get_student_data = async (req,res) => {
 try {
     
@@ -118,7 +121,7 @@ const delete_Student = async (req, res) => {
         message: 'Internal server error.'
       })
     }
-  }
+}
   
 
 const update_student = async (req, res) => {
