@@ -16,7 +16,7 @@ const fileupload = async (filepath, foldername) => {
         console.log(error);
       });
 
-    console.log(uploadResult);
+    // console.log(uploadResult);
     return uploadResult;
   } catch (error) {}
 };

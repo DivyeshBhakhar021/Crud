@@ -31,6 +31,11 @@ router.post(
   studentController.searchdata
 )
 
+router.post(
+  "/login",
+  studentController.logindata
+)
+
 module.exports = router
 
 

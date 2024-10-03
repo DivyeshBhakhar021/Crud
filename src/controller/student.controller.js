@@ -1,6 +1,8 @@
 const path = require("path");
 const { studentmodal } = require("../modal");
 const fileupload = require("../utilse/cloudinary");
+const bcrypt = require("bcrypt");
+const { log } = require("console");
 
 
 const get_student_data = async (req,res) => {
@@ -26,7 +28,7 @@ try {
 }
 
 const add_studentdata = async (req, res) => {
-  console.log(req.body.file,"aaaaaaaaaaaaaaaaaaaaaaaa");
+  // console.log(req.body.file,"aaaaaaaaaaaaaaaaaaaaaaaa");
   
   try {
     let fileData = {};
@@ -58,6 +60,7 @@ const add_studentdata = async (req, res) => {
       country,
       state,
       city,
+      password,
     } = req.body;
 
       const hobbiesArray = Array.isArray(hobbies)
@@ -76,7 +79,8 @@ const add_studentdata = async (req, res) => {
       country,
       state,
       city,
-      fileData
+      fileData,
+      password
     );
 
     console.log("Student data saved:", studentData);
@@ -118,7 +122,7 @@ const delete_Student = async (req, res) => {
   
 
 const update_student = async (req, res) => {
-  console.log("Update Request", req.body);
+  // console.log("Update Request", req.body.hobbies);
 
   try {
     const { student_id } = req.params;
@@ -127,7 +131,6 @@ const update_student = async (req, res) => {
       last_name,
       email,
       gender,
-      hobbies,
       country,
       state,
       city,
@@ -138,34 +141,38 @@ const update_student = async (req, res) => {
       last_name,
       email,
       gender,
-      hobbies,
       country,
       state,
       city,
     };
 
-    // if (req.file) {
-    //   console.log("New File upload");
-    //   const fileres = await fileupload(req.file.path);
+    if (req.file) {
+      console.log("New File upload");
+      const fileres = await fileupload(req.file.path);
 
-    //   updateData.file = {
-    //     public_id: fileres.public_id,
-    //     url: fileres.url,
-    //     display_name: fileres.display_name,
-    //   };
-    // }
+      updateData.file = {
+        public_id: fileres.public_id,
+        url: fileres.url, 
+        display_name: fileres.display_name,
+      };
+    }
 
-    // Call the updateStudent function
+   updateData.hobbies = Array.isArray(req.body.hobbies)
+     ? req.body.hobbies
+     : req.body.hobbies.join(",")
+
+
+
     const updatedStudent = await studentmodal.updateStudent(
       updateData.first_name,
       updateData.last_name,
       updateData.email,
       updateData.gender,
-      updateData.hobbies,
+      updateData.hobbies.join(','),
       updateData.country,
       updateData.state,
       updateData.city,
-      // updateData.file,
+      updateData.file,
       student_id
     );
 
@@ -195,7 +202,7 @@ const update_student = async (req, res) => {
 
 
 const searchdata =async(req,res)=>{
-   console.log(req.body, "searchdata_req");
+  //  console.log(req.body, "searchdata_req");
 try {
    const f_data = req.body;
    const student_serach = await studentmodal.serach_data(f_data);
@@ -215,6 +222,56 @@ try {
 }
 }
 
+const logindata = async  (req, res) => {
+  console.log(req.body,"login");
+  
+  try {
+
+    const {  email, password } = req.body;
+
+    const user = await studentmodal.login_modal({ email,password });
+
+    console.log(user,"email");
+       
+
+    if (!user){
+      return res.status(404).json({
+        success:false,
+        message:"User Not Found"
+
+      })
+    }
 
 
-module.exports = {get_student_data,add_studentdata,delete_Student,update_student,searchdata}
+     if (!user.verifypassword) {
+       return res.status(401).json({
+         success: false,
+         message: "Incorrect password",
+       });
+     }
+
+     return res.status(200).json({
+       success: true,
+       message: "Login successful",
+       user: {
+         email: user.email,
+         isAuthanticated: user.verifypassword,
+         message: "Login successful",
+       },
+     });
+
+  
+  
+} catch (error) {
+  console.error(error);
+  return res.status(500).json({
+    success: false,
+    message: "Internal Server Error",
+  });
+}
+}
+
+
+
+
+module.exports = {get_student_data,add_studentdata,delete_Student,update_student,searchdata,logindata}
